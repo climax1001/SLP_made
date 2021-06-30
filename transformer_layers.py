@@ -101,3 +101,77 @@ class PositionalEncoding(nn.Module):
         return emb + self.pe[:, :emb.size(1)]
 
 class TransformerEncoderLayer(nn.Module):
+    def __init__(self,
+                 size : int = 0,
+                 ff_size : int = 0,
+                 num_heads : int = 0,
+                 dropout : float = 0.1):
+
+        super(TransformerEncoderLayer, self).__init__()
+
+        self.layer_norm = nn.LayerNorm(size, eps=1e-6)
+        self.src_src_att = MultiheadedAttention(num_heads, size, dropout=dropout)
+        self.feedfoward = PositionWiseFeedForward(size, ff_size=ff_size)
+        self.dropout = nn.Dropout(dropout)
+        self.size = size
+
+    def forward(self, x : Tensor, mask : Tensor) -> Tensor:
+        x_norm = self.layer_norm(x)
+
+        h = self.src_src_att(x_norm, x_norm, x_norm, mask=mask) #?
+
+        h = self.dropout(h) + x
+        o = self.feedfoward(h)
+        return o
+
+class TransformerDecoderLayer(nn.Module):
+
+    def __init__(self,
+                 size: int = 0,
+                 ff_size: int = 0,
+                 num_heads: int = 0,
+                 dropout: float = 0.1,
+                 decoder_trg_trg: bool = True):
+
+        super(TransformerDecoderLayer, self).__init__()
+        self.size = size
+
+        self.trg_trg_att = MultiheadedAttention(num_heads, size,
+                                                dropout=dropout)
+
+        self.src_trg_att = MultiheadedAttention(num_heads, size,
+                                                dropout=dropout)
+
+        self.feed_forward = PositionWiseFeedForward(size, ff_size=ff_size)
+
+        self.x_layer_norm = nn.LayerNorm(size, eps=1e-6)
+        self.dec_layer_norm = nn.LayerNorm(size, eps=1e-6)
+
+        self.dropout = nn.Dropout(dropout)
+
+        self.decoder_trg_trg = decoder_trg_trg
+
+    # pylint: disable=arguments-differ
+    def forward(self,
+                x: Tensor = None,
+                memory: Tensor = None,
+                src_mask: Tensor = None,
+                trg_mask: Tensor = None,
+                padding_mask: Tensor = None) -> Tensor:
+
+        # decoder/target self-attention
+        h1 = self.x_layer_norm(x)
+
+        # Target-Target Self Attention
+        if self.decoder_trg_trg:
+            h1 = self.trg_trg_att(h1, h1, h1, mask=trg_mask, padding_mask=padding_mask)
+        h1 = self.dropout(h1) + x
+
+        # Source-Target Self Attention
+        h1_norm = self.dec_layer_norm(h1)
+        h2 = self.src_trg_att(memory, memory, h1_norm, mask=src_mask)
+
+        # final position-wise feed-forward layer
+        o = self.feed_forward(self.dropout(h2) + h1)
+
+        return o
