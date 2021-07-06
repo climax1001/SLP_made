@@ -111,7 +111,7 @@ def prepareData(reverse=False):
 # pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]
 # print(len(pairs))
 def load_data(reverse=False):
-    lines = open('data/eng-kor.txt', encoding='utf-8').\
+    lines = open('eng-kor.txt', encoding='utf-8').\
         read().strip().split('\n')
     word = []
 
@@ -132,8 +132,22 @@ def load_data(reverse=False):
 
 i_l, o_l, pairs = prepareData()
 
-print(i_l.word2index)
-print(o_l.word2index)
+def indexesFromSentence(lang, sentence):
+    return [lang.word2index[word] for word in sentence.split(' ')]
+
+
+def tensorFromSentence(lang, sentence):
+    indexes = indexesFromSentence(lang, sentence)
+    indexes.append(EOS_token)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+
+
+def tensorsFromPair(pair):
+    input_tensor = tensorFromSentence(i_l, pair[0])
+    target_tensor = tensorFromSentence(o_l, pair[1])
+    return (input_tensor, target_tensor)
+
+print(pairs)
 
 # print(len(list))
 
