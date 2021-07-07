@@ -2,28 +2,14 @@ import math
 import os.path
 
 import pandas as pd
+import numpy as np
+
 import torch
 import torch.nn as nn
 import mediapipe as mp
 import pandas
 import cv2
-tmp = ['WRIST','index_finger_dip', 'index_finger_mcp', 'index_finger_dip',
-                                  'middel_finger_dip','middel_finger_mcp','middel_finger_pip','middel_finger_tip',
-                                  'pinky_dip','pinky_mcp','pinky_pip','pinky_tip',
-                                  'ring_dip','ring_mcp','ring_pip','ring_tip',
-                                  'thumb_cmc','thumb_ip','thumb_mcp','thumb_tip']
-skel_data = pd.DataFrame(columns=['left_HandLandmark.WRIST_x', 'left_HandLandmark.WRIST_y', 'left_HandLandmark.THUMB_CMC_x',
-                                  'left_HandLandmark.THUMB_CMC_y', 'left_HandLandmark.THUMB_MCP_x', 'left_HandLandmark.THUMB_MCP_y',
-                                  'left_HandLandmark.THUMB_IP_x', 'left_HandLandmark.THUMB_IP_y', 'left_HandLandmark.THUMB_TIP_x', 'left_HandLandmark.THUMB_TIP_y',
-                                  'left_HandLandmark.INDEX_FINGER_MCP_x', 'left_HandLandmark.INDEX_FINGER_MCP_y', 'left_HandLandmark.INDEX_FINGER_PIP_x', 'left_HandLandmark.INDEX_FINGER_PIP_y'
-    , 'left_HandLandmark.INDEX_FINGER_DIP_x', 'left_HandLandmark.INDEX_FINGER_DIP_y', 'left_HandLandmark.INDEX_FINGER_TIP_x', 'left_HandLandmark.INDEX_FINGER_TIP_y',
-                                  'left_HandLandmark.MIDDLE_FINGER_MCP_x', 'left_HandLandmark.MIDDLE_FINGER_MCP_y', 'left_HandLandmark.MIDDLE_FINGER_PIP_x',
-                                  'left_HandLandmark.MIDDLE_FINGER_PIP_y', 'left_HandLandmark.MIDDLE_FINGER_DIP_x', 'left_HandLandmark.MIDDLE_FINGER_DIP_y',
-                                  'left_HandLandmark.MIDDLE_FINGER_TIP_x', 'left_HandLandmark.MIDDLE_FINGER_TIP_y', 'left_HandLandmark.RING_FINGER_MCP_x',
-                                  'left_HandLandmark.RING_FINGER_MCP_y', 'left_HandLandmark.RING_FINGER_PIP_x', 'left_HandLandmark.RING_FINGER_PIP_y',
-                                  'left_HandLandmark.RING_FINGER_DIP_x', 'left_HandLandmark.RING_FINGER_DIP_y', 'left_HandLandmark.RING_FINGER_TIP_x', 'left_HandLandmark.RING_FINGER_TIP_y',
-                                  'left_HandLandmark.PINKY_MCP_x', 'left_HandLandmark.PINKY_MCP_y', 'left_HandLandmark.PINKY_PIP_x', 'left_HandLandmark.PINKY_PIP_y', 'left_HandLandmark.PINKY_DIP_x', 'left_HandLandmark.PINKY_DIP_y',
-                                  'left_HandLandmark.PINKY_TIP_x', 'left_HandLandmark.PINKY_TIP_y'])
+
 mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
 
@@ -43,28 +29,32 @@ with mp_holistic.Holistic(
     static_image_mode=True, min_detection_confidence=0.5, model_complexity=2) as holistic:
   for image in IMAGE_FILES:
     # Convert the BGR image to RGB and process it with MediaPipe Pose.
+    SKEL_DATA = pd.DataFrame()
     print(image)
     image = cv2.imread(image)
     results = holistic.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     # Print nose coordinates.
     image_hight, image_width, _ = image.shape
-
+    skel_dic_left = {}
     if results.left_hand_landmarks:
         for bodypoint in mp_holistic.HandLandmark:
-            print('left')
-            print(bodypoint)
-            print(results.left_hand_landmarks.landmark[bodypoint].x * image_width)
-            skel_data['left_' + str(bodypoint) + '_x'].append(results.left_hand_landmarks.landmark[bodypoint].x * image_width)
-            print(results.left_hand_landmarks.landmark[bodypoint].y * image_hight)
-            skel_data['left_' + str(bodypoint) + '_y'].append(results.left_hand_landmarks.landmark[bodypoint].y * image_hight)
+            skel_dic_left['left_' + str(bodypoint) + '_x'] = results.left_hand_landmarks.landmark[bodypoint].x * image_width
+            skel_dic_left['left_' + str(bodypoint) + '_y'] = results.left_hand_landmarks.landmark[bodypoint].y * image_hight
+
+        print(skel_dic_left.keys())
+        SKEL_DATA = pd.DataFrame(columns= skel_dic_left.keys())
+        skel_Series = pd.Series(skel_dic_left)
+        SKEL_DATA = SKEL_DATA.append(skel_Series, ignore_index=True)
+        print(SKEL_DATA)
+        # SKEL_DATA.to_csv("skel_dir/test1.csv", mode='a',header=True)
     if results.right_hand_landmarks:
         for bodypoint in mp_holistic.HandLandmark:
-            print('right')
-            print(bodypoint)
-            print(results.right_hand_landmarks.landmark[bodypoint].x * image_width)
-            print(results.right_hand_landmarks.landmark[bodypoint].y * image_hight)
+            continue
+    if results.pose_landmarks:
+        for bodypoint in mp_holistic.PoseLandmark:
+            continue
 
-print(skel_data)
+print(SKEL_DATA)
     # print('FINGERS')
       # print('INDEX_TIP')
       # print(results.pose_landmarks.landmark[mp_holistic.HandLandmark.INDEX_FINGER_TIP].x * image_width,
