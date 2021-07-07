@@ -20,14 +20,28 @@ def load_file_for_skeleton(dirname=constants.dirname, filename=constants.train_d
     return path_files, name_files
 
 def get_skeleton_csv(img_file_path):
-
+    print(img_file_path)
     img_file_path.sort()
+
 
     HLM = []
     POS = constants.WANNA_POSE
 
     mp_drawing = mp.solutions.drawing_utils
     mp_holistic = mp.solutions.holistic
+
+    for i in range(0, len(mp_holistic.HandLandmark)):
+        HLM.append("LEFT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_X')
+        HLM.append("LEFT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_Y')
+    for i in range(0, len(mp_holistic.HandLandmark)):
+        HLM.append("RIGHT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_X')
+        HLM.append("RIGHT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_Y')
+
+    skel_data = []
+    pose_data = []
+    skel_data = pd.DataFrame(skel_data, columns=HLM)
+    pose_data = pd.DataFrame(pose_data, columns=constants.WANNA_POSE)
+
     drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
     with mp_holistic.Holistic(
@@ -81,10 +95,12 @@ def get_skeleton_csv(img_file_path):
 
             pose_land_data = np.array(pose_land_data).reshape(1, -1)
             hand_land_data = np.array(hand_land_data).reshape(1, -1)
-
+            print(pose_land_data)
+            print(hand_land_data)
             dfNew = pd.DataFrame(hand_land_data, columns=HLM)
             posedf = pd.DataFrame(pose_land_data, columns=constants.WANNA_POSE)
-
+            print(dfNew)
+            print(posedf)
             skel_data = pd.concat([skel_data, dfNew], ignore_index=True)
             pose_data = pd.concat([pose_data, posedf], ignore_index=True)
             full_data = pd.concat([skel_data, pose_data], axis=1, ignore_index=True)
@@ -101,6 +117,7 @@ def get_files(paths):
             full_path.append(fp)
         print(full_path)
         get_skeleton_csv(full_path)
+    return 0
 
 paths, name = load_file_for_skeleton()
 get_files(paths)

@@ -23,8 +23,8 @@ img_dir_ = []
 for dir_list in img_dir:
     a = 'data/' + dir_list
     img_dir_.append(a)
-    print(img_dir_)
 IMAGE_FILES = img_dir_
+print(IMAGE_FILES)
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 DESIRED_HEIGHT = 480
 DESIRED_WIDTH = 480
@@ -41,7 +41,6 @@ skel_data = []
 pose_data = []
 skel_data = pd.DataFrame(skel_data, columns = HLM)
 pose_data = pd.DataFrame(pose_data, columns = constants.WANNA_POSE)
-
 with mp_holistic.Holistic(
     static_image_mode=True, min_detection_confidence=0.5, model_complexity=2) as holistic:
   for image in IMAGE_FILES:
@@ -98,8 +97,9 @@ with mp_holistic.Holistic(
         pose_land_data.append(np.nan)
 
     pose_land_data = np.array(pose_land_data).reshape(1,-1)
+    print(pose_land_data)
     hand_land_data = np.array(hand_land_data).reshape(1,-1)
-
+    print(hand_land_data)
     dfNew = pd.DataFrame(hand_land_data, columns= HLM)
     posedf = pd.DataFrame(pose_land_data, columns=constants.WANNA_POSE)
 
