@@ -20,9 +20,10 @@ def load_file_for_skeleton(dirname=constants.dirname, filename=constants.train_d
     return path_files, name_files
 
 def get_skeleton_csv(img_file_path):
-    print(img_file_path)
-    img_file_path.sort()
 
+    folder_name = img_file_path[1].split('/')[-2]
+    img_file_path.sort()
+    print(folder_name)
 
     HLM = []
     POS = constants.WANNA_POSE
@@ -36,13 +37,10 @@ def get_skeleton_csv(img_file_path):
     for i in range(0, len(mp_holistic.HandLandmark)):
         HLM.append("RIGHT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_X')
         HLM.append("RIGHT_" + str(list(mp_holistic.HandLandmark)[i]).strip('HandLandmark.') + '_Y')
-
     skel_data = []
     pose_data = []
     skel_data = pd.DataFrame(skel_data, columns=HLM)
     pose_data = pd.DataFrame(pose_data, columns=constants.WANNA_POSE)
-
-    drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
     with mp_holistic.Holistic(
         static_image_mode=True, min_detection_confidence=0.5, model_complexity=2) as holistic:
@@ -58,6 +56,7 @@ def get_skeleton_csv(img_file_path):
                     hand_land_data.append(results.left_hand_landmarks.landmark[bodypoint].y * image_hight)
 
             else:
+                for bodypoint in mp_holistic.HandLandmark:
                     hand_land_data.append(np.nan)
                     hand_land_data.append(np.nan)
 
@@ -67,6 +66,7 @@ def get_skeleton_csv(img_file_path):
                     hand_land_data.append(results.right_hand_landmarks.landmark[bodypoint].y * image_hight)
 
             else:
+                for bodypoint in mp_holistic.HandLandmark:
                     hand_land_data.append(np.nan)
                     hand_land_data.append(np.nan)
 
@@ -91,21 +91,22 @@ def get_skeleton_csv(img_file_path):
                 pose_land_data.append(
                     results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER].y * image_hight)
             else:
-                pose_land_data.append(np.nan)
+                for i in range(8):
+                    pose_land_data.append(np.nan)
 
-            pose_land_data = np.array(pose_land_data).reshape(1, -1)
-            hand_land_data = np.array(hand_land_data).reshape(1, -1)
-            print(pose_land_data)
-            print(hand_land_data)
+            pose_land_data = np.array(pose_land_data).reshape(-1, 8)
+            hand_land_data = np.array(hand_land_data).reshape(-1, 84)
+            # print(pose_land_data)
+            # print(hand_land_data)
             dfNew = pd.DataFrame(hand_land_data, columns=HLM)
             posedf = pd.DataFrame(pose_land_data, columns=constants.WANNA_POSE)
-            print(dfNew)
-            print(posedf)
+            # print(dfNew)
+            # print(posedf)
             skel_data = pd.concat([skel_data, dfNew], ignore_index=True)
             pose_data = pd.concat([pose_data, posedf], ignore_index=True)
             full_data = pd.concat([skel_data, pose_data], axis=1, ignore_index=True)
 
-    return full_data.to_csv("skel_dir/test1.csv", index=False)
+    return full_data.to_csv("skel_dir/{}.csv".format(folder_name), index=False)
 
 def get_files(paths):
     for path in paths:
@@ -115,9 +116,9 @@ def get_files(paths):
         for i in img_list:
             fp = path + '/' + str(i)
             full_path.append(fp)
-        print(full_path)
+
         get_skeleton_csv(full_path)
-    return 0
+
 
 paths, name = load_file_for_skeleton()
 get_files(paths)
