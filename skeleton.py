@@ -119,6 +119,6 @@ def get_files(paths):
 
         get_skeleton_csv(full_path)
 
-
-paths, name = load_file_for_skeleton()
-get_files(paths)
+if __name__ == '__main__':
+    paths, name = load_file_for_skeleton()
+    get_files(paths)

@@ -100,4 +100,4 @@ print(SKEL_DATA)
 #
 # encoding_ = torch.zeros(200000, 10)
 # position = torch.arange(10, 200000).unsqueeze(1)
-# print(encoding_[:,0::2])
+# print(encoding_[:,0::2 ])
