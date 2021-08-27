@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import helpers
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 # 전체 문장 리스트 생성
 def get_line(text_name):

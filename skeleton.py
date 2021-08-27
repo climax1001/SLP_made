@@ -52,8 +52,8 @@ def get_skeleton_csv(img_file_path):
             hand_land_data = []
             if results.left_hand_landmarks:
                 for bodypoint in mp_holistic.HandLandmark:
-                    hand_land_data.append(results.left_hand_landmarks.landmark[bodypoint].x * image_width)
-                    hand_land_data.append(results.left_hand_landmarks.landmark[bodypoint].y * image_hight)
+                    hand_land_data.append(results.left_hand_landmarks.landmark[bodypoint].x)
+                    hand_land_data.append(results.left_hand_landmarks.landmark[bodypoint].y)
 
             else:
                 for bodypoint in mp_holistic.HandLandmark:
@@ -62,8 +62,8 @@ def get_skeleton_csv(img_file_path):
 
             if results.right_hand_landmarks:
                 for bodypoint in mp_holistic.HandLandmark:
-                    hand_land_data.append(results.right_hand_landmarks.landmark[bodypoint].x * image_width)
-                    hand_land_data.append(results.right_hand_landmarks.landmark[bodypoint].y * image_hight)
+                    hand_land_data.append(results.right_hand_landmarks.landmark[bodypoint].x)
+                    hand_land_data.append(results.right_hand_landmarks.landmark[bodypoint].y)
 
             else:
                 for bodypoint in mp_holistic.HandLandmark:
@@ -72,24 +72,24 @@ def get_skeleton_csv(img_file_path):
 
             if results.pose_landmarks:
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_ELBOW].x * image_width)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_ELBOW].x)
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_ELBOW].y * image_hight)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_ELBOW].y)
 
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_ELBOW].x * image_width)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_ELBOW].x)
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_ELBOW].y * image_hight)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_ELBOW].y)
 
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER].x * image_width)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER].x)
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER].y * image_hight)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_SHOULDER].y)
 
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER].x * image_width)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER].x)
                 pose_land_data.append(
-                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER].y * image_hight)
+                    results.pose_landmarks.landmark[mp_holistic.PoseLandmark.RIGHT_SHOULDER].y)
             else:
                 for i in range(8):
                     pose_land_data.append(np.nan)
@@ -106,17 +106,19 @@ def get_skeleton_csv(img_file_path):
             pose_data = pd.concat([pose_data, posedf], ignore_index=True)
             full_data = pd.concat([skel_data, pose_data], axis=1, ignore_index=True)
 
-    return full_data.to_csv("skel_dir/{}.csv".format(folder_name), index=False)
+    return full_data.to_csv("/home/juncislab/dataset/test/{}.csv".format(folder_name), index=False)
 
 def get_files(paths):
+    cnt = 0
     for path in paths:
+        print(cnt)
         full_path = []
         img_list = os.listdir(path)
         img_list.sort()
         for i in img_list:
             fp = path + '/' + str(i)
             full_path.append(fp)
-
+        cnt = cnt + 1
         get_skeleton_csv(full_path)
 
 if __name__ == '__main__':
